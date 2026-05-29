@@ -1,6 +1,6 @@
 # ⚡ NeuRPC Stream — Real-Time Biosignal Plotter
 
-A high-performance, full-stack web application designed for loading, decoding, streaming, and rendering multi-channel European Data Format (EDF) physiological recordings (e.g., EEG, EOG, EMG) in real time. 
+A high-performance, full-stack web application designed for loading, decoding, streaming, and rendering multi-channel European Data Format (EDF) physiological recordings (e.g., EEG, EOG, EMG) in real time.
 
 The application utilizes **MNE-Python** for lazy-loaded file parsing, **FastAPI + SSE (Server-Sent Events)** for binary chunk streaming, and a **Next.js + ApexCharts** frontend for declarative stacked waveform representation.
 
@@ -10,9 +10,9 @@ The application utilizes **MNE-Python** for lazy-loaded file parsing, **FastAPI 
 
 Below is a demonstration of the application rendering EEG waveforms, shifting the dynamic timeline axis on the fly, and scrolling through all 36 channels with baseline stacking:
 
-https://github.com/subhajithait/grpc-test/raw/main/demo/neurpc-stream-demo.mp4
+https://github.com/subho004/neurpc-stream/raw/main/demo/neurpc-stream-demo.mp4
 
-<video src="demo/neurpc-stream-demo.mp4" width="100%" controls autoplay loop muted></video>
+<video src="https://github.com/subho004/neurpc-stream/raw/main/demo/neurpc-stream-demo.mp4" width="100%" controls autoplay loop muted></video>
 
 ---
 
@@ -44,22 +44,22 @@ https://github.com/subhajithait/grpc-test/raw/main/demo/neurpc-stream-demo.mp4
                               [ SC4001E0-PSG.edf ]
 ```
 
-* **Backend SSE instead of raw gRPC-Web:** Browsers cannot speak raw gRPC natively due to HTTP/2 binary framing constraints without a proxy (like Envoy). This project exposes REST endpoints and a Server-Sent Events (SSE) stream returning JSON packets with base64-encoded binary sample arrays. This matches the proto schema, bypasses complex proxy setups, and runs over standard HTTP/1.1.
-* **Standalone gRPC Server:** A companion standalone gRPC server (`grpc_server.py` on `:50051`) remains active for native gRPC clients, native mobile apps, or command-line utilities like `grpcurl`.
-* **Async Thread Offloading:** MNE-Python operations are blocking and synchronous. The backend uses `asyncio.to_thread` to run MNE operations in thread pools, preventing the FastAPI async event loop from getting blocked.
+- **Backend SSE instead of raw gRPC-Web:** Browsers cannot speak raw gRPC natively due to HTTP/2 binary framing constraints without a proxy (like Envoy). This project exposes REST endpoints and a Server-Sent Events (SSE) stream returning JSON packets with base64-encoded binary sample arrays. This matches the proto schema, bypasses complex proxy setups, and runs over standard HTTP/1.1.
+- **Standalone gRPC Server:** A companion standalone gRPC server (`grpc_server.py` on `:50051`) remains active for native gRPC clients, native mobile apps, or command-line utilities like `grpcurl`.
+- **Async Thread Offloading:** MNE-Python operations are blocking and synchronous. The backend uses `asyncio.to_thread` to run MNE operations in thread pools, preventing the FastAPI async event loop from getting blocked.
 
 ---
 
 ## ✨ Features
 
-* **Multi-Channel Stacked EEG Display:** Stacked vertical rendering of up to 36 channels with customizable baseline offsets to prevent overlapping.
-* **Smart Backend Scaling & DC Removal:**
-  * Subtracts the baseline offset (mean of the first 10 seconds of calibration) for each channel to center waveforms around zero.
-  * Multiplies EEG/EOG/EMG channels by $10^6$ (`V → µV`) on the backend so they are transmitted in readable physiological scales. Non-EEG channels (e.g., Temperature, Respiration) remain in their native units.
-* **Declarative React Rendering:** Completely decoupled from imperative rendering loops, avoiding race conditions that cause waveforms to flicker or disappear.
-* **Dynamic Top-Mounted X-Axis:** The time-series x-axis labels (`Time (s)`) are shown at the **top** of the chart, dynamically shifting in bounds (`minX` to `maxX`) as you navigate.
-* **Debounced Navigation & Seek:** Dragging the seek bar slider or changing window limits triggers a single 200ms debounced network fetch, avoiding server spam.
-* **Constrained Height Layout:** The viewport height is constrained to `100vh`, enabling the sidebar checklist of 36 channels to scroll independently without shifting layout cards off-screen.
+- **Multi-Channel Stacked EEG Display:** Stacked vertical rendering of up to 36 channels with customizable baseline offsets to prevent overlapping.
+- **Smart Backend Scaling & DC Removal:**
+  - Subtracts the baseline offset (mean of the first 10 seconds of calibration) for each channel to center waveforms around zero.
+  - Multiplies EEG/EOG/EMG channels by $10^6$ (`V → µV`) on the backend so they are transmitted in readable physiological scales. Non-EEG channels (e.g., Temperature, Respiration) remain in their native units.
+- **Declarative React Rendering:** Completely decoupled from imperative rendering loops, avoiding race conditions that cause waveforms to flicker or disappear.
+- **Dynamic Top-Mounted X-Axis:** The time-series x-axis labels (`Time (s)`) are shown at the **top** of the chart, dynamically shifting in bounds (`minX` to `maxX`) as you navigate.
+- **Debounced Navigation & Seek:** Dragging the seek bar slider or changing window limits triggers a single 200ms debounced network fetch, avoiding server spam.
+- **Constrained Height Layout:** The viewport height is constrained to `100vh`, enabling the sidebar checklist of 36 channels to scroll independently without shifting layout cards off-screen.
 
 ---
 
@@ -119,8 +119,9 @@ grpc-test/
 ## 🚀 Getting Started
 
 ### Prerequisites
-* Python 3.12+ (with `venv` support)
-* Node.js 18+ & npm
+
+- Python 3.12+ (with `venv` support)
+- Node.js 18+ & npm
 
 ---
 
@@ -142,18 +143,24 @@ pip install -r requirements.txt
 ```
 
 #### Configure Environment
+
 Ensure your `backend/.env` points to the active EDF file:
+
 ```ini
 PORT=8000
 EDF_FILE_PATH=/Users/subhajithait/Documents/testing/grpc-test/SC4001E0-PSG.edf
 ```
 
 #### Launch Backend Server
+
 Run the FastAPI web server:
+
 ```bash
 uvicorn main:app --reload --port 8000
 ```
-*(Optional)* To start the standalone gRPC server:
+
+_(Optional)_ To start the standalone gRPC server:
+
 ```bash
 python grpc_server.py
 ```
@@ -183,13 +190,13 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 1. **Mounting:** `useEDFMetadata` fetches metadata from the backend. The frontend initialises the selected channels and automatically queries the first `10 seconds` of the recording.
 2. **Streaming:** The frontend initiates a connection to `/api/v1/edf/stream` passing parameters: `start_sample`, `window_samples`, and `channel_indices`.
 3. **Chunking & Transfer:**
-   * The backend reads slices of EDF data using MNE.
-   * Subtracts cached DC baseline offset and applies scale multipliers (`V → µV`).
-   * Serialises the raw `float32` array to raw bytes (`data_f32.tobytes()`).
-   * Encodes the bytes as Base64 and yields the chunk via SSE.
+   - The backend reads slices of EDF data using MNE.
+   - Subtracts cached DC baseline offset and applies scale multipliers (`V → µV`).
+   - Serialises the raw `float32` array to raw bytes (`data_f32.tobytes()`).
+   - Encodes the bytes as Base64 and yields the chunk via SSE.
 4. **Decoding & Offsets:**
-   * The frontend decodes the base64 string back into binary values using `atob`.
-   * Reinterprets the binary buffer into standard floats:
+   - The frontend decodes the base64 string back into binary values using `atob`.
+   - Reinterprets the binary buffer into standard floats:
      `const floats = new Float32Array(bytes.buffer);`
-   * Maps each channel into stacked coordinates `{ x: timestamp, y: amplitude + channelOffset }`.
-   * Passes the series to ApexCharts, which updates reactively.
+   - Maps each channel into stacked coordinates `{ x: timestamp, y: amplitude + channelOffset }`.
+   - Passes the series to ApexCharts, which updates reactively.
