@@ -1,0 +1,81 @@
+syntax = "proto3";
+
+package edf_stream.v1;
+
+option py_generic_services = false;
+
+// ──────────────────────────────────────────────
+// Metadata
+// ──────────────────────────────────────────────
+
+message EDFMetadataRequest {
+  // Optional: override the EDF file to read. Leave empty to use server default.
+  string file_path = 1;
+}
+
+message ChannelInfo {
+  string name = 1;
+  string type = 2;   // e.g. "eeg", "eog", "emg", "misc"
+  string unit = 3;   // e.g. "µV", "mV"
+  double low_freq  = 4;
+  double high_freq = 5;
+}
+
+message EDFMetadataResponse {
+  repeated ChannelInfo channels = 1;
+  double sfreq = 2;             // Sampling frequency in Hz
+  int64  n_samples = 3;         // Total samples per channel
+  double duration_seconds = 4;  // Total recording duration
+  string subject_info = 5;      // Subject / recording info from EDF header
+  repeated string annotations = 6; // EDF annotations / events
+}
+
+// ──────────────────────────────────────────────
+// Streaming
+// ──────────────────────────────────────────────
+
+message StreamEDFRequest {
+  // Index into the file (in samples) where this window starts.
+  int64 start_sample = 1;
+  // How many samples to include per streamed chunk (per channel).
+  int32 chunk_size = 2;
+  // Total number of samples to stream in this request.
+  // 0 = stream to end of file.
+  int64 window_samples = 3;
+  // Which channels to include (0-based indices). Empty = all channels.
+  repeated int32 channel_indices = 4;
+  // Optional file path override.
+  string file_path = 5;
+}
+
+message EDFChunk {
+  // Flat float32 bytes: shape = [n_channels × samples_in_chunk]
+  // Row-major: channel 0 samples, then channel 1 samples, etc.
+  bytes  samples   = 1;
+  // Number of channels in this chunk (for reshaping on the client).
+  int32  n_channels = 2;
+  // Number of samples per channel in this chunk.
+  int32  n_samples  = 3;
+  // Sample index of the first sample in this chunk (absolute, from start of file).
+  int64  start_sample = 4;
+  // Chunk sequence number (0-based) within the current stream.
+  int32  chunk_index = 5;
+  // Whether this is the last chunk in the stream.
+  bool   is_last = 6;
+  // Channel names (sent only in first chunk to reduce overhead).
+  repeated string channel_names = 7;
+  // Sampling frequency (sent only in first chunk).
+  double sfreq = 8;
+}
+
+// ──────────────────────────────────────────────
+// Service
+// ──────────────────────────────────────────────
+
+service EDFStreamService {
+  // Unary: return file metadata (channels, sfreq, duration).
+  rpc GetMetadata(EDFMetadataRequest) returns (EDFMetadataResponse);
+
+  // Server-streaming: stream a window of EDF data chunk by chunk.
+  rpc StreamEDFWindow(StreamEDFRequest) returns (stream EDFChunk);
+}
