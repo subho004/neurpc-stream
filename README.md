@@ -12,7 +12,7 @@ Below is a demonstration of the application rendering EEG waveforms, shifting th
 
 [Download / View Demo Video](https://github.com/subho004/neurpc-stream/raw/main/demo/neurpc-stream-demo.mp4)
 
-<video src="demo/neurpc-stream-demo.mp4" width="100%" controls autoplay loop muted></video>
+![](https://github.com/subho004/neurpc-stream/raw/main/demo/neurpc-stream-demo.mp4)
 
 ---
 
