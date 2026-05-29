@@ -10,9 +10,7 @@ The application utilizes **MNE-Python** for lazy-loaded file parsing, **FastAPI 
 
 Below is a demonstration of the application rendering EEG waveforms, shifting the dynamic timeline axis on the fly, and scrolling through all 36 channels with baseline stacking:
 
-https://github.com/subho004/neurpc-stream/raw/main/demo/neurpc-stream-demo.mp4
-
-<video src="https://github.com/subho004/neurpc-stream/raw/main/demo/neurpc-stream-demo.mp4" width="100%" controls autoplay loop muted></video>
+<video src="demo/neurpc-stream-demo.mp4" width="100%" controls autoplay loop muted></video>
 
 ---
 
